@@ -15,7 +15,7 @@ globalCache.statusArray = "WARNING, CACHE IN INITIAL STATE";
 
 globalCache.refresh = function(){
 	globalCache.statusArray = getStatusInfo();
-	//setTimeout(globalCache.refresh,5000);
+	setTimeout(globalCache.refresh,3000);
 }
 globalCache.refresh();
 
@@ -39,6 +39,7 @@ function getStatusInfo(){
 	function handleLogs(logArray){
 		console.log(logArray.length);
 		console.log(getMemory(logArray));
+		console.log(getCPU(logArray));
 		
 		function getMemory(logArray){
 			//console.log(logArray
@@ -57,6 +58,31 @@ function getStatusInfo(){
 						
 			};
 		}
+		function getCPU(logArray){
+			let cpu1Match = logArray
+							.filter(string=>string.match('CPU001,T0001,'))[0]
+							.match(/CPU001,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d)$/i);
+			let cpu2Match = logArray
+							.filter(string=>string.match('CPU002,T0001,'))[0]
+							.match(/CPU002,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d)$/i);
+			return {
+				"cpu1":
+					{
+						"User%":cpu1Match[1],
+						"Wait%":cpu1Match[3],
+						"Idle%":cpu1Match[4]
+					},
+				"cpu2":
+					{
+						"User%":cpu2Match[1],
+						"Wait%":cpu2Match[3],
+						"Idle%":cpu2Match[4]
+					},
+						
+			};
+		}
+		
+		
 	}
 }  
 
