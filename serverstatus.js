@@ -40,6 +40,7 @@ function getStatusInfo(){
 		console.log(logArray.length);
 		console.log(getMemory(logArray));
 		console.log(getCPU(logArray));
+		console.log(getNetUse(logArray));
 		
 		function getMemory(logArray){
 			//console.log(logArray
@@ -59,10 +60,10 @@ function getStatusInfo(){
 			};
 		}
 		function getCPU(logArray){
-			let cpu1Match = logArray
+			const cpu1Match = logArray
 							.filter(string=>string.match('CPU001,T0001,'))[0]
 							.match(/CPU001,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d)$/i);
-			let cpu2Match = logArray
+			const cpu2Match = logArray
 							.filter(string=>string.match('CPU002,T0001,'))[0]
 							.match(/CPU002,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d)$/i);
 			return {
@@ -81,7 +82,16 @@ function getStatusInfo(){
 						
 			};
 		}
-		
+		function getNetUse(logArray){
+			const netMatch = logArray
+							.filter(string=>string.match('NET,T0001,'))[0]
+							.match(/NET,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),$/i);
+			return {
+				"recv":netMatch[3],
+				"trans":netMatch[6],
+				"units":"kB"
+			};
+		}
 		
 	}
 }  
