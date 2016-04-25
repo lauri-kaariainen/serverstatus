@@ -8,10 +8,6 @@ var execSync = require('child_process').execSync;
 const NMON_LOGFILE_PATH = "nmon.txt";
 
 
-var logStringArray = 
-	fs.readFileSync(NMON_LOGFILE_PATH,{encoding:"utf-8"})
-	.split('\n');
-console.log(logStringArray.length);
 
 var globalCache = {};
 //declare all cached items here
@@ -28,57 +24,40 @@ globalCache.refresh();
 function getStatusInfo(){
 
 	//run the nmon logging
-	console.log(execSync("nmon -F "+NMON_LOGFILE_PATH+" -s 0 -c 1").toString());
-	var logStringArray = 
-		fs.readFileSync(NMON_LOGFILE_PATH,{encoding:"ascii"})
-		.split('\n');
-	console.log(logStringArray.length);
+	execSync("nmon -F "+NMON_LOGFILE_PATH+" -s 0 -c 1");
+	
+	//it should take a bit less than 2 secs to complete writing the logfile 
 	setTimeout(()=>
 		{
 			var logStringArray = 
 			fs.readFileSync(NMON_LOGFILE_PATH,{encoding:"ascii"})
 			.split('\n');
-			console.log(logStringArray.length);
+			handleLogs(logStringArray);
 		
-		},150);
-
-	return []
-			.map(e=>({"name":e.name,"id":e.id,"status":callGrep(e.id)}));
+		},2000);
 	
-	function callGrep(idString){
-		try{ 
-			return isEverythingOk(
-						execSync(
-							'grep -i "error\\|except" '+process.env['HOME']+'/.forever/' +idString+'.log'
-					).toString())
-		}
-		catch(e){
-			//this means grep didn't find anything
-			if(e.status === 1){
-				return true;
-			}
-			else throw e;
-		}
+	function handleLogs(logArray){
+		console.log(logArray.length);
+		console.log(getMemory(logArray));
 		
-			
-	};
-
-	function isEverythingOk(stdout){
-		if(!stdout)
-			return true;
-		var lastErrorLine = stdout
-								.trim()
-								.split("\n")
-								.pop();
-		//console.log(lastErrorLine);
-		if(lastErrorLine.match("error: Script restart attempt"))
-			return true;
-		else
-			return false;
-		
+		function getMemory(logArray){
+			//console.log(logArray
+			//			.filter(string=>string.match("BBBP,074"))[0]);
+			return {
+				"total":logArray
+						.filter(string=>string.match('BBBP,074,/proc/meminfo,"MemTotal:'))[0]
+						.match(/(\d+) kB"$/i)[1],
+				"free":parseInt(logArray
+						.filter(string=>string.match('BBBP,075,/proc/meminfo,"MemFree:'))[0]
+						.match(/(\d+) kB"$/i)[1]) +
+					   parseInt(logArray
+						.filter(string=>string.match('BBBP,080,/proc/meminfo,"Inactive:'))[0]
+						.match(/(\d+) kB"$/i)[1]),
+				"units":"kB"
+						
+			};
+		}
 	}
-	
-			
 }  
 
 
