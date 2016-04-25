@@ -1,0 +1,19 @@
+{
+  "name": "serverstatus",
+  "version": "0.0.1",
+  "description": "output certain data about server using nmon",
+  "main": "serverstatus.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "server",
+    "status",
+    "nmon"
+  ],
+  "author": "lauri kääriäinen",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.13.4"
+  }
+}
