@@ -14,8 +14,9 @@ var globalCache = {};
 globalCache.statusArray = "WARNING, CACHE IN INITIAL STATE";
 
 globalCache.refresh = function(){
-	globalCache.statusArray = getStatusInfo();
-	setTimeout(globalCache.refresh,3000);
+	getStatusInfo()
+.then(result=> {globalCache.statusArray = result});
+	setTimeout(globalCache.refresh,5000);
 }
 globalCache.refresh();
 
@@ -25,31 +26,40 @@ function getStatusInfo(){
 
 	//run the nmon logging
 	execSync("nmon -F "+NMON_LOGFILE_PATH+" -s 0 -c 1");
+		
 	
 	//it should take a bit less than 2 secs to complete writing the logfile 
-	setTimeout(()=>
-		{
-			var logStringArray = 
-			fs.readFileSync(NMON_LOGFILE_PATH,{encoding:"ascii"})
-			.split('\n');
-			handleLogs(logStringArray);
-		
-		},2000);
+	return new Promise((resolve,reject)=>{
+		setTimeout(()=>
+			{
+				var logStringArray = 
+				fs.readFileSync(NMON_LOGFILE_PATH,{encoding:"ascii"})
+					.split('\n');
+				resolve(handleLogs(logStringArray));
+			
+			},2000);
+	});
+	
 	
 	function handleLogs(logArray){
-		console.log(logArray.length);
-		console.log(getMemory(logArray));
-		console.log(getCPU(logArray));
-		console.log(getNetUse(logArray));
+		//console.log(logArray.length);
+		//console.log(getMemory(logArray));
+		//console.log(getCPU(logArray));
+		//console.log(getNetUse(logArray));
+		let returnArray = [];
+		returnArray.push(getMemory(logArray));
+		returnArray.push(getCPU(logArray));
+		returnArray.push(getNetUse(logArray));
+		return returnArray;
 		
 		function getMemory(logArray){
 			//console.log(logArray
 			//			.filter(string=>string.match("BBBP,074"))[0]);
 			return {
-				"total":logArray
+				"totalmem":logArray
 						.filter(string=>string.match('BBBP,074,/proc/meminfo,"MemTotal:'))[0]
 						.match(/(\d+) kB"$/i)[1],
-				"free":parseInt(logArray
+				"freemem":parseInt(logArray
 						.filter(string=>string.match('BBBP,075,/proc/meminfo,"MemFree:'))[0]
 						.match(/(\d+) kB"$/i)[1]) +
 					   parseInt(logArray
@@ -87,8 +97,8 @@ function getStatusInfo(){
 							.filter(string=>string.match('NET,T0001,'))[0]
 							.match(/NET,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),$/i);
 			return {
-				"recv":netMatch[3],
-				"trans":netMatch[6],
+				"receiveddata":netMatch[3],
+				"sentdata":netMatch[6],
 				"units":"kB"
 			};
 		}
@@ -98,7 +108,7 @@ function getStatusInfo(){
 
 
 
-app.get('/statuses', 
+app.get('/status', 
 	(req, res)=>{
 		res.send(globalCache.statusArray);
 	}
