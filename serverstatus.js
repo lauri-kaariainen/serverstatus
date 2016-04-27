@@ -15,8 +15,10 @@ globalCache.statusArray = "WARNING, CACHE IN INITIAL STATE";
 
 globalCache.refresh = function(){
 	getStatusInfo()
-.then(result=> {globalCache.statusArray = result});
-	setTimeout(globalCache.refresh,5000);
+		.then(result=> {
+				globalCache.statusArray = result;
+				setTimeout(globalCache.refresh,5000);});
+	
 }
 globalCache.refresh();
 
@@ -46,10 +48,14 @@ function getStatusInfo(){
 		//console.log(getMemory(logArray));
 		//console.log(getCPU(logArray));
 		//console.log(getNetUse(logArray));
+		//console.log(getUptime(logArray));
+		//console.log(getLoadAverages(logArray));
 		let returnArray = [];
 		returnArray.push(getMemory(logArray));
 		returnArray.push(getCPU(logArray));
 		returnArray.push(getNetUse(logArray));
+		returnArray.push(getUptime(logArray));
+		returnArray.push(getLoadAverages(logArray));
 		return returnArray;
 		
 		function getMemory(logArray){
@@ -103,6 +109,23 @@ function getStatusInfo(){
 			};
 		}
 		
+		function getUptime(logArray){
+			const uptimeMatch = logArray
+							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
+							.match(/^BBBP,254,uptime," \d+:\d+:\d+ up (\d+ days,  \d+:\d+),/i);
+			return {
+				"uptime":uptimeMatch[1],
+			};
+		}
+		
+		function getLoadAverages(logArray){
+			const loadAvgMatch = logArray
+							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
+							.match(/load average: (\d+.\d+, \d+.\d+, \d+.\d+)"$/i);
+			return {
+				"loadAverages":loadAvgMatch[1],
+			};
+		}
 	}
 }  
 
