@@ -112,7 +112,7 @@ function getStatusInfo(){
 		function getUptime(logArray){
 			const uptimeMatch = logArray
 							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
-							.match(/^BBBP,254,uptime," \d+:\d+:\d+ up (\d+ days,  \d+:\d+),/i);
+							.match(/^BBBP,254,uptime," \d+:\d+:\d+ up (\d+ days,\s\d+:\d+)/i);
 			return {
 				"uptime":uptimeMatch[1],
 			};
