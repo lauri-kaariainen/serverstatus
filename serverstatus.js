@@ -39,7 +39,7 @@ function getStatusInfo(){
 					.split('\n');
 				resolve(handleLogs(logStringArray));
 			
-			},2000);
+			},3500);
 	});
 	
 	
