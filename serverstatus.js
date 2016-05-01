@@ -14,11 +14,12 @@ var globalCache = {};
 globalCache.statusArray = "WARNING, CACHE IN INITIAL STATE";
 
 globalCache.refresh = function(){
+	var startTime = new Date().getTime();
 	getStatusInfo()
 		.then(result=> {
 				globalCache.statusArray = result;
-				setTimeout(globalCache.refresh,5000);});
-	
+				setTimeout(globalCache.refresh,5000 - (new Date().getTime() - startTime));});
+
 }
 globalCache.refresh();
 
@@ -39,7 +40,7 @@ function getStatusInfo(){
 					.split('\n');
 				resolve(handleLogs(logStringArray));
 			
-			},3500);
+			},2500);
 	});
 	
 	
@@ -86,12 +87,14 @@ function getStatusInfo(){
 				"cpu1":
 					{
 						"User%":cpu1Match[1],
+						"Sys%":cpu1Match[2],
 						"Wait%":cpu1Match[3],
 						"Idle%":cpu1Match[4]
 					},
 				"cpu2":
 					{
 						"User%":cpu2Match[1],
+						"Sys%":cpu2Match[2],
 						"Wait%":cpu2Match[3],
 						"Idle%":cpu2Match[4]
 					},
@@ -112,9 +115,9 @@ function getStatusInfo(){
 		function getUptime(logArray){
 			const uptimeMatch = logArray
 							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
-							.match(/^BBBP,254,uptime," \d+:\d+:\d+ up (\d+ days,\s\d+:\d+)/i);
+							.match(/BBBP,254,uptime," \d+:\d+:\d+ up (\d+ days,\s+\d+ min)/i);
 			return {
-				"uptime":uptimeMatch[1],
+				"uptime":uptimeMatch ? uptimeMatch[1] : "error",
 			};
 		}
 		
@@ -123,7 +126,7 @@ function getStatusInfo(){
 							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
 							.match(/load average: (\d+.\d+, \d+.\d+, \d+.\d+)"$/i);
 			return {
-				"loadAverages":loadAvgMatch[1],
+				"loadAverages":loadAvgMatch ? loadAvgMatch[1] : "error",
 			};
 		}
 	}
