@@ -63,17 +63,22 @@ function getStatusInfo(){
 			//console.log(logArray
 			//			.filter(string=>string.match("BBBP,074"))[0]);
 			return {
-				"totalmem":logArray
+				"totalmem":parseInt(logArray
 						.filter(string=>string.match('BBBP,074,/proc/meminfo,"MemTotal:'))[0]
-						.match(/(\d+) kB"$/i)[1],
+						.match(/(\d+) kB"$/i)[1]),
 				"freemem":parseInt(logArray
 						.filter(string=>string.match('BBBP,075,/proc/meminfo,"MemFree:'))[0]
 						.match(/(\d+) kB"$/i)[1]) +
 					   parseInt(logArray
 						.filter(string=>string.match('BBBP,080,/proc/meminfo,"Inactive:'))[0]
 						.match(/(\d+) kB"$/i)[1]),
-				"units":"kB"
-						
+				"units":"kB",
+				"totalswap":parseInt(logArray
+						.filter(string=>string.match('BBBP,087,/proc/meminfo,"SwapTotal:'))[0]
+						.match(/(\d+) kB"$/i)[1]),
+				"freeswap":parseInt(logArray
+						.filter(string=>string.match('BBBP,088,/proc/meminfo,"SwapFree:'))[0]
+						.match(/(\d+) kB"$/i)[1])
 			};
 		}
 		function getCPU(logArray){
@@ -115,7 +120,9 @@ function getStatusInfo(){
 		function getUptime(logArray){
 			const uptimeMatch = logArray
 							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
-							.match(/BBBP,254,uptime," \d+:\d+:\d+ up (\d+ days,\s+\d+ min)/i);
+							//NOTE! uptime might be in form '333 days, 2 min' OR 
+							//'333 days, 2:32' OR maybe something else
+							.match(/BBBP,254,uptime," \d+:\d+:\d+ up ([^,]+,\s+[^,]+),/i);
 			return {
 				"uptime":uptimeMatch ? uptimeMatch[1] : "error",
 			};
