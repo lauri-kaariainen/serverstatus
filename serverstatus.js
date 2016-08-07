@@ -60,24 +60,22 @@ function getStatusInfo(){
 		return returnArray;
 		
 		function getMemory(logArray){
-			//console.log(logArray
-			//			.filter(string=>string.match("BBBP,074"))[0]);
 			return {
 				"totalmem":parseInt(logArray
-						.filter(string=>string.match('BBBP,074,/proc/meminfo,"MemTotal:'))[0]
+						.filter(string=>string.match(/BBBP.*MemTotal:/))[0]
 						.match(/(\d+) kB"$/i)[1]),
 				"freemem":parseInt(logArray
-						.filter(string=>string.match('BBBP,075,/proc/meminfo,"MemFree:'))[0]
+						.filter(string=>string.match(/BBBP.*MemFree:/))[0]
 						.match(/(\d+) kB"$/i)[1]) +
 					   parseInt(logArray
-						.filter(string=>string.match('BBBP,080,/proc/meminfo,"Inactive:'))[0]
+						.filter(string=>string.match(/BBBP.*Inactive:/))[0]
 						.match(/(\d+) kB"$/i)[1]),
 				"units":"kB",
 				"totalswap":parseInt(logArray
-						.filter(string=>string.match('BBBP,087,/proc/meminfo,"SwapTotal:'))[0]
+						.filter(string=>string.match(/BBBP.*SwapTotal:/))[0]
 						.match(/(\d+) kB"$/i)[1]),
 				"freeswap":parseInt(logArray
-						.filter(string=>string.match('BBBP,088,/proc/meminfo,"SwapFree:'))[0]
+						.filter(string=>string.match(/BBBP.*SwapFree:/))[0]
 						.match(/(\d+) kB"$/i)[1])
 			};
 		}
@@ -119,10 +117,11 @@ function getStatusInfo(){
 		
 		function getUptime(logArray){
 			const uptimeMatch = logArray
-							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
+							.filter(string=>string.match(/BBBP,\d\d\d,uptime,"/))[0]
 							//NOTE! uptime might be in form '333 days, 2 min' OR 
-							//'333 days, 2:32' OR maybe something else
-							.match(/BBBP,254,uptime," \d+:\d+:\d+ up ([^,]+,\s+[^,]+),/i);
+							//'333 days, 2:32' OR 
+							//maybe something else
+							.match(/BBBP,\d\d\d,uptime," \d+:\d+:\d+ up ([^,]+,\s+[^,]+),/i);
 			return {
 				"uptime":uptimeMatch ? uptimeMatch[1] : "error",
 			};
@@ -130,7 +129,7 @@ function getStatusInfo(){
 		
 		function getLoadAverages(logArray){
 			const loadAvgMatch = logArray
-							.filter(string=>string.match('BBBP,254,uptime,"'))[0]
+							.filter(string=>string.match(/BBBP,\d\d\d,uptime,"/))[0]
 							.match(/load average: (\d+.\d+, \d+.\d+, \d+.\d+)"$/i);
 			return {
 				"loadAverages":loadAvgMatch ? loadAvgMatch[1] : "error",
