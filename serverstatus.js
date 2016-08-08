@@ -80,37 +80,27 @@ function getStatusInfo(){
 			};
 		}
 		function getCPU(logArray){
-			const cpu1Match = logArray
-							.filter(string=>string.match('CPU001,T0001,'))[0]
-							.match(/CPU001,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d)$/i);
-			const cpu2Match = logArray
-							.filter(string=>string.match('CPU002,T0001,'))[0]
-							.match(/CPU002,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d)$/i);
-			return {
-				"cpu1":
-					{
-						"User%":cpu1Match[1],
-						"Sys%":cpu1Match[2],
-						"Wait%":cpu1Match[3],
-						"Idle%":cpu1Match[4]
-					},
-				"cpu2":
-					{
-						"User%":cpu2Match[1],
-						"Sys%":cpu2Match[2],
-						"Wait%":cpu2Match[3],
-						"Idle%":cpu2Match[4]
-					},
-						
-			};
+			const cpuList = logArray
+							.filter(string=>string.match(/^CPU\d\d\d,T/))
+			return cpuList
+							.map(cpuLine=>{
+								const matchArray = cpuLine
+										.match(/CPU\d\d(\d),T\d\d\d\d,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d)$/i);
+								return {
+										"Num":matchArray[1],
+										"User%":matchArray[2],
+										"Sys%":matchArray[3],
+										"Wait%":matchArray[4],
+										"Idle%":matchArray[5]
+									}})
 		}
 		function getNetUse(logArray){
 			const netMatch = logArray
 							.filter(string=>string.match('NET,T0001,'))[0]
 							.match(/NET,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),$/i);
 			return {
-				"receiveddata":netMatch[3],
-				"sentdata":netMatch[6],
+				"receiveddata":netMatch[1],
+				"sentdata":netMatch[4],
 				"units":"kB"
 			};
 		}
