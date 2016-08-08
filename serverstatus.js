@@ -64,6 +64,12 @@ function getStatusInfo(){
 				"totalmem":parseInt(logArray
 						.filter(string=>string.match(/BBBP.*MemTotal:/))[0]
 						.match(/(\d+) kB"$/i)[1]),
+				"buffers":parseInt(logArray
+						.filter(string=>string.match(/BBBP.*Buffers:/))[0]
+						.match(/(\d+) kB"$/i)[1]),
+				"cached":parseInt(logArray
+						.filter(string=>string.match(/BBBP.*Cached:/))[0]
+						.match(/(\d+) kB"$/i)[1]),
 				"freemem":parseInt(logArray
 						.filter(string=>string.match(/BBBP.*MemFree:/))[0]
 						.match(/(\d+) kB"$/i)[1]) +
