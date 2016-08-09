@@ -60,6 +60,8 @@ function getStatusInfo(){
 		return returnArray;
 		
 		function getMemory(logArray){
+			//htop's calculation is straightforward, using numbers from /proc/meminfo.
+			//It's basically (MemTotal - MemFree - (Buffers + Cached)) / 1024.
 			return {
 				"totalmem":parseInt(logArray
 						.filter(string=>string.match(/BBBP.*MemTotal:/))[0]
@@ -72,10 +74,7 @@ function getStatusInfo(){
 						.match(/(\d+) kB"$/i)[1]),
 				"freemem":parseInt(logArray
 						.filter(string=>string.match(/BBBP.*MemFree:/))[0]
-						.match(/(\d+) kB"$/i)[1]) +
-					   parseInt(logArray
-						.filter(string=>string.match(/BBBP.*Inactive:/))[0]
-						.match(/(\d+) kB"$/i)[1]),
+						.match(/(\d+) kB"$/i)[1]) ,
 				"units":"kB",
 				"totalswap":parseInt(logArray
 						.filter(string=>string.match(/BBBP.*SwapTotal:/))[0]
