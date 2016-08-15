@@ -99,17 +99,29 @@ function getStatusInfo(){
 										"Idle%":matchArray[5]
 									}})
 		}
-		function getNetUse(logArray){
-			const netMatch = logArray
+	  function getNetUse(logArray){
+			const netInterfaceValues = 
+						logArray
 							.filter(string=>string.match('NET,T0001,'))[0]
-							.match(/NET,T0001,(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),(\d+.\d),$/i);
+							.split('NET,T0001,')[1]
+							.split(',')
+							.slice(0,-1);
+			const receivedAmount = 
+						netInterfaceValues
+							.filter((value,i)=> i < netInterfaceValues.length/2)
+							.reduce((a,b)=>a+parseFloat(b),0);
+			const sentAmount = 
+						netInterfaceValues
+							.filter((value,i)=> i >= netInterfaceValues.length/2)
+							.reduce((a,b)=>a+parseFloat(b),0);
+							
 			return {
-				"receiveddata":netMatch[1],
-				"sentdata":netMatch[4],
+				"receiveddata":receivedAmount,
+				"sentdata":sentAmount,
 				"units":"kB"
 			};
 		}
-		
+
 		function getUptime(logArray){
 			const uptimeMatch = logArray
 							.filter(string=>string.match(/BBBP,\d\d\d,uptime,"/))[0]
