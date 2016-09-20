@@ -52,6 +52,7 @@ function getStatusInfo(){
 		//console.log(getUptime(logArray));
 		//console.log(getLoadAverages(logArray));
 		//console.log(getSda1Use(logArray));
+		//console.log(getDiskWriteAndRead(logArray));
 		
 		let returnArray = [];
 		returnArray.push(getMemory(logArray));
@@ -60,6 +61,8 @@ function getStatusInfo(){
 		returnArray.push(getUptime(logArray));
 		returnArray.push(getLoadAverages(logArray));
 		returnArray.push(getSda1Use(logArray));
+		returnArray.push(getDiskWriteAndRead(logArray));
+		
 		
 		return returnArray;
 		
@@ -158,6 +161,29 @@ function getStatusInfo(){
 					"used":Math.round(sda1Match[2]/1024),
 					"available":Math.round(sda1Match[3]/1024),
 					"usedpercentage":sda1Match[4],
+				}
+			};
+		}
+		function getDiskWriteAndRead(logArray){
+			const diskReadValue = 
+						logArray
+							.filter(string=>string.match('DISKREAD,T0001,'))[0]
+							.split('T0001,')[1]
+							.split(',')[0];
+			const diskWriteValue = 
+						logArray
+							.filter(string=>string.match('DISKWRITE,T0001,'))[0]
+							.split('T0001,')[1]
+							.split(',')[0];
+			const unit = "KB/s";
+							
+			return {
+				"name":"diskWriteAndRead",
+				"data":{
+					"unit":unit,
+					"readPerSec":diskReadValue,
+					"writePerSec":diskWriteValue,
+					
 				}
 			};
 		}
