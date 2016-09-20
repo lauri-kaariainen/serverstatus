@@ -51,12 +51,16 @@ function getStatusInfo(){
 		//console.log(getNetUse(logArray));
 		//console.log(getUptime(logArray));
 		//console.log(getLoadAverages(logArray));
+		//console.log(getSda1Use(logArray));
+		
 		let returnArray = [];
 		returnArray.push(getMemory(logArray));
 		returnArray.push(getCPU(logArray));
 		returnArray.push(getNetUse(logArray));
 		returnArray.push(getUptime(logArray));
 		returnArray.push(getLoadAverages(logArray));
+		returnArray.push(getSda1Use(logArray));
+		
 		return returnArray;
 		
 		function getMemory(logArray){
@@ -140,6 +144,21 @@ function getStatusInfo(){
 							.match(/load average: (\d+.\d+, \d+.\d+, \d+.\d+)"$/i);
 			return {
 				"loadAverages":loadAvgMatch ? loadAvgMatch[1] : "error",
+			};
+		}
+		function getSda1Use(logArray){
+			const sda1Match = logArray
+							.filter(string=>string.match("/bin/df-m,\"ddev/sda1"))[0]
+							.match(/sda1\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+%)/i);
+			return {
+				"name":"sda1Stats",
+				"data":{
+					"unit":"G",
+					"all":Math.round(sda1Match[1]/1024),
+					"used":Math.round(sda1Match[2]/1024),
+					"available":Math.round(sda1Match[3]/1024),
+					"usedpercentage":sda1Match[4],
+				}
 			};
 		}
 	}
