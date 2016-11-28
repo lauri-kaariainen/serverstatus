@@ -54,17 +54,16 @@ function getStatusInfo(){
 		//console.log(getSda1Use(logArray));
 		//console.log(getDiskWriteAndRead(logArray));
 		
-		let returnArray = [];
-		returnArray.push(getMemory(logArray));
-		returnArray.push(getCPU(logArray));
-		returnArray.push(getNetUse(logArray));
-		returnArray.push(getUptime(logArray));
-		returnArray.push(getLoadAverages(logArray));
-		returnArray.push(getSda1Use(logArray));
-		returnArray.push(getDiskWriteAndRead(logArray));
-		
-		
-		return returnArray;
+		return [			
+			getMemory(logArray),
+			getCPU(logArray),
+			getNetUse(logArray),
+			getUptime(logArray),
+			getLoadAverages(logArray),
+			getSda1Use(logArray),
+			getDiskWriteAndRead(logArray)
+		];
+
 		
 		function getMemory(logArray){
 			//htop's calculation is straightforward, using numbers from /proc/meminfo.
