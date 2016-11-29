@@ -182,7 +182,7 @@ Uptime: 0 days, 00:00:00
 			var BLUEBAR = '<span class="single-bar blue">|</span>';
 			
 			promise
-				.get("ajax/status"+"?timestamp="+new Date().getTime())
+				.get("../ajax/status"+"?timestamp="+new Date().getTime())
 				.then(function(error,data){renderStatus(JSON.parse(data))});
 			
 			
