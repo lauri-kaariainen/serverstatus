@@ -1,9 +1,18 @@
 "use strict";
 var app = require('express')();
 var http = require('http').Server(app);
-
 var getStatusInfo = require('./getstatus').getStatus;
+var nodeStatic = require('node-static');
 
+
+var file = new(nodeStatic.Server)();
+function serveFile(req,res){
+	if(req.url==="/")
+		req.url = "/frontend/index.html";
+	else
+		req.url = "/frontend"+req.url;
+	file.serve(req,res);
+}
 
 
 var globalCache = {};
@@ -29,9 +38,17 @@ app.get('/status',
 	}
 );
 
+app.get("/",serveFile);
+app.get("/dominate.min.js",serveFile);
+app.get("/ungrid.css",serveFile);
+app.get("/promise.min.js",serveFile);
 
 			
 
 http.listen(9010, function(){ 
   console.log('listening on *:9010');
 });
+
+
+
+	
