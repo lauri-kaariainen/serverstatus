@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+	
+    <title>Server run status</title>
+	<link rel="stylesheet" type="text/css" href="ungrid.css">
+    <style> 
+		html {
+			background-color:black;
+		}
+		.green {
+			color:#2cff00;
+		}
+		.red {
+			color:rgb(252, 26, 26);
+		}
+		.yellow {
+			color:yellow;
+		}
+		.blue {
+			color:lightblue;
+		}
+		.scale-start-desc {
+			width:38px;
+		}
+		.scale-open-bracket{
+			width: 0.5em;
+		}
+		.scale-div {
+			overflow:hidden;
+		} 
+
+		.single-bar {
+			letter-spacing: 4.4px;
+		}
+		.scale-span {
+		
+		}
+		.scale-end {
+			width: 72px;
+			text-align: right;
+			font-size: 0.8em;
+			
+		}
+		#textDataDiv,#scalesDiv {
+			float:left;
+			width:48%;
+		}
+		@media(max-width:550px){
+			
+			#textDataDiv,#scalesDiv {
+				width:100%;
+			}
+		}
+
+	</style>
+    
+	
+  </head>
+
+  <body> 
+
+  
+
+	<div id="containerDiv" class="container">
+		<div id="firstStatusRow" class="row" style="color:white;">
+			<div id="scalesDiv" class="">
+				
+				<div class="row">
+					<div class="col scale-start-desc">
+						<span style="color:cyan;">Mem</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">[</span>
+					</div>
+					<div class="col scale-div">
+						<span id="mem-scale-span" class="scale-span">
+						</span>	
+					</div>
+					<div class="col scale-end">
+						<span id="mem-scale-number-span" style="color:gray;">0%</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">]</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col scale-start-desc">
+						<span style="color:cyan;">Swap</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">[</span>
+					</div>
+					<div class="col scale-div">
+						<span id="swap-scale-span" class="scale-span">
+						</span>	
+					</div>
+					<div class="col scale-end">
+						<span id="swap-scale-number-span" style="color:gray;">0MB</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">]</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col scale-start-desc">
+						<span style="color:cyan;">Sent</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">[</span>
+					</div>
+					<div class="col scale-div">
+						<span id="netsent-scale-span" class="scale-span">
+						</span>	
+					</div>
+					<div class="col scale-end">
+						<span id="netsent-scale-number-span" style="color:gray;">0 kBps</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">]</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col scale-start-desc">
+						<span style="color:cyan;">Recv</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">[</span>
+					</div>
+					<div class="col scale-div">
+						<span id="netrecv-scale-span" class="scale-span">
+						</span>	
+					</div>
+					<div class="col scale-end">
+						<span id="netrecv-scale-number-span" style="color:gray;">0 kBps</span>
+					</div>
+					<div class="col scale-open-bracket">
+						<span style="color:white;">]</span>
+					</div>
+				</div>
+				
+			</div>
+			<div id="textDataDiv" class="" style="color:cyan; text-align:left; padding-left: 16px;">
+				<pre id="loadaverage-and-uptime-pre">
+Load average: 0.00 0.00 0.00
+Uptime: 0 days, 00:00:00
+				</pre>
+			</div>
+		</div>
+	</div> <!-- /containerdiv -->
+	<script src="promise.min.js"></script>
+	<script src="dominate.min.js"></script>
+	<script>
+		"use strict";
+		var ServerStatus = {};
+		
+		
+		
+		ServerStatus.startLoop = function(){
+			
+			ServerStatus.getDataAndRender();
+			setTimeout(ServerStatus.startLoop,5000);
+			
+			var timeoutId;
+			window.onresize = function(){
+				clearTimeout(timeoutId);
+				timeoutId = setTimeout(ServerStatus.getDataAndRender, 50);
+			}
+			
+		}
+		
+		ServerStatus.getDataAndRender = function(){
+			var GREENBAR = '<span class="single-bar green">|</span>';
+			var YELLOWBAR = '<span class="single-bar yellow">|</span>';
+			var REDBAR = '<span class="single-bar red">|</span>';
+			var BLUEBAR = '<span class="single-bar blue">|</span>';
+			
+			promise
+				.get("ajax/status"+"?timestamp="+new Date().getTime())
+				.then(function(error,data){renderStatus(JSON.parse(data))});
+			
+			
+			function renderStatus(data){ 
+				console.log(data);
+				var COLORINTERVAL = parseInt(document.querySelector(".scale-div").clientWidth/3);
+				//mem
+				
+				renderBars(
+					document.querySelector("#mem-scale-span"),
+					document.querySelector("#mem-scale-number-span"),
+					100-(data[0].freemem+data[0].cached+data[0].buffers)/data[0].totalmem*100,
+					data[0].cached/data[0].totalmem*100,
+					data[0].buffers/data[0].totalmem*100,
+					parseInt((data[0].totalmem-data[0].freemem-data[0].cached-data[0].buffers)/1024)+
+						"/"+
+						parseInt(data[0].totalmem/1024)+
+						"MB");
+				//swap
+				renderBars(
+					document.querySelector("#swap-scale-span"),
+					document.querySelector("#swap-scale-number-span"),
+					0,
+					0,
+					100-data[0].freeswap/data[0].totalswap*100,
+					parseInt((data[0].totalswap-data[0].freeswap)/1024)+"MB");
+				//cpus
+				//render cpu scales if not rendered
+				if(!document.querySelector('.cpu-scale'))
+					data[1]
+						.reverse()
+						.forEach(function(cpu){
+							var scalesDiv = document.querySelector('#scalesDiv');
+							scalesDiv.insertBefore(createCPUScale(cpu.Num),scalesDiv.firstChild);});
+				data[1]
+					.forEach(function(cpu){
+						renderBars(
+							document.querySelector("#cpu"+cpu.Num+"-scale-span"),
+							document.querySelector("#cpu"+cpu.Num+"-scale-number-span"),
+							parseInt(cpu["User%"]),
+							0,
+							parseInt(cpu["Sys%"]),
+							parseInt(cpu["User%"])+"%");})
+				//sent net data
+				renderBars(
+					document.querySelector("#netsent-scale-span"),
+					document.querySelector("#netsent-scale-number-span"),
+					data[2].sentdata/130*100,
+					0,
+					0,
+					parseInt(data[2].sentdata)+"kBps");
+				//recv'd net data
+				renderBars(
+					document.querySelector("#netrecv-scale-span"),
+					document.querySelector("#netrecv-scale-number-span"),
+					data[2].receiveddata/130*100,
+					0,
+					0,
+					parseInt(data[2].receiveddata)+"kBps");	
+				//disk usage stats
+				if(!document.querySelector('.disk-usage-scale')){
+					var scalesDiv = document.querySelector('#scalesDiv');
+					scalesDiv.appendChild(
+									createScale("Sda1","disk-usage"));
+				}
+				renderBars(
+					document.querySelector("#disk-usage-scale-span"),
+					document.querySelector("#disk-usage-scale-number-span"),
+					data[5].data.used/data[5].data.all*100,
+					0,
+					0,
+					data[5].data.usedpercentage);	
+				//disk load stats
+				if(!document.querySelector('.disk-load-read-scale')){
+					var scalesDiv = document.querySelector('#scalesDiv');
+					scalesDiv.appendChild(
+									createScale(".read","disk-load-read"));
+					scalesDiv.appendChild(
+									createScale(".write","disk-load-write"));
+				}
+				renderBars(
+					document.querySelector("#disk-load-read-scale-span"),
+					document.querySelector("#disk-load-read-scale-number-span"),
+					data[6].data.readPerSec/50000*100,
+					0,
+					0,
+					data[6].data.readPerSec+data[6].data.unit);	
+				renderBars(
+					document.querySelector("#disk-load-write-scale-span"),
+					document.querySelector("#disk-load-write-scale-number-span"),
+					data[6].data.writePerSec/10000*100,
+					0,
+					0,
+					data[6].data.writePerSec+data[6].data.unit);	
+				//load averages
+				renderTextStatuses(data[3].uptime,data[4].loadAverages);
+				
+				function renderBars(barElement,textValueElement,greenBarPercentage,yellowBarPercentage,redBarPercentage,numValue){
+					
+					barElement.innerHTML = "";
+					textValueElement.innerHTML = numValue;
+				    renderColoredBars(barElement,greenBarPercentage,GREENBAR);
+					renderColoredBars(barElement,redBarPercentage,REDBAR);
+				    renderColoredBars(barElement,yellowBarPercentage,YELLOWBAR);
+				    
+					
+					function renderColoredBars(barElement,barPercentage,BAR){
+						var totalRoomForBars = document.querySelector(".scale-div").clientWidth/7.6;
+						var amountOfBarsThatShouldBeRendered = parseInt(totalRoomForBars*barPercentage/100);
+						for(var i = 0;i < amountOfBarsThatShouldBeRendered;i++)
+							barElement.innerHTML += BAR;
+					}
+				}
+				
+				
+			
+				function renderTextStatuses(uptimeString,loadAverageString){
+					document.querySelector("#loadaverage-and-uptime-pre").innerHTML =
+						"Load average: "+loadAverageString+"\n"+
+						"Uptime: "+uptimeString;
+				
+				}
+				
+				function createCPUScale(cpuNum){
+					return DOMinate(
+						['div.row.cpu-scale',
+							['div.col.scale-start-desc',
+								['span',""+cpuNum,{style:"color:cyan"}]],
+							['div.col.scale-open-bracket',
+								['span',"[",{style:"color:white"}]],
+							['div.col.scale-div',
+								['span#cpu'+cpuNum+'-scale-span.scale-span']],
+							['div.col.scale-end',
+								['span#cpu'+cpuNum+'-scale-number-span',"0%",{style:"color:gray"}]],
+							['div.col.scale-open-bracket',
+								['span',"]",{style:"color:white"}]]]
+					)[0]
+					
+				}
+				function createScale(name,className){
+					return DOMinate(
+						['div.row.'+className+'-scale',
+							['div.col.scale-start-desc',
+								['span',""+name,{style:"color:cyan"}]],
+							['div.col.scale-open-bracket',
+								['span',"[",{style:"color:white"}]],
+							['div.col.scale-div',
+								['span#'+className+'-scale-span.scale-span']],
+							['div.col.scale-end',
+								['span#'+className+'-scale-number-span',"0%",{style:"color:gray"}]],
+							['div.col.scale-open-bracket',
+								['span',"]",{style:"color:white"}]]]
+					)[0]
+					
+				}
+			}
+		}
+	
+	
+		
+	
+		
+		
+		ServerStatus.startLoop();
+
+		
+	</script>
+ 
+  </body>
+</html>
