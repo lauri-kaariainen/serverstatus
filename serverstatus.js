@@ -32,7 +32,7 @@ globalCache.refresh();
 
 
 
-app.get('/status', 
+app.get('/ajax/status', 
 	(req, res)=>{
 		res.send(globalCache.statusArray);
 	}
