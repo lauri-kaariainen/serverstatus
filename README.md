@@ -19,4 +19,3 @@ dependencies: nmon, nodejs, npm
 #example of bundledfrontend:
 https://lauri-kaariainen.github.io/serverstatus/frontend/index.html
  
-:)
